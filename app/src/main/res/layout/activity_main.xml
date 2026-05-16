@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="32dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="24dp"
+            android:src="@android:drawable/stat_sys_data_bluetooth"
+            app:tint="@color/primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Bluetooth Jiggler"
+            android:textColor="@color/on_surface"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="48dp"
+            android:gravity="center"
+            android:text="Initializing Bluetooth..."
+            android:textColor="@color/on_surface_variant"
+            android:textSize="16sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggle"
+            android:layout_width="240dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="16dp"
+            android:text="Start Jiggling"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            app:cornerRadius="32dp"
+            app:elevation="8dp"
+            app:rippleColor="#40FFFFFF" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDiscover"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:text="Make Discoverable"
+            android:textAllCaps="false"
+            android:textColor="@color/on_surface_variant" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Status: Acting as HID Mouse"
+        android:textColor="#33FFFFFF"
+        android:textSize="12sp" />
+
+</RelativeLayout>
