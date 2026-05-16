@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.*
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import java.util.concurrent.Executors
@@ -14,6 +15,7 @@ import java.util.concurrent.Executors
 class JigglerService : Service() {
 
     companion object {
+        private const val TAG = "JigglerService"
         private const val CHANNEL_ID = "JigglerServiceChannel"
         private const val NOTIFICATION_ID = 1
 
@@ -75,10 +77,15 @@ class JigglerService : Service() {
 
     private val hidCallback = object : BluetoothHidDevice.Callback() {
         override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
+            Log.d(TAG, "onAppStatusChanged: registered=$registered")
             callback?.onAppStatusChanged(registered)
+            if (registered) {
+                checkExistingConnections()
+            }
         }
 
         override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
+            Log.d(TAG, "onConnectionStateChanged: device=${device?.name}, state=$state")
             when (state) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     hostDevice = device
@@ -93,8 +100,37 @@ class JigglerService : Service() {
         }
     }
 
+    private fun checkExistingConnections() {
+        val hid = hidDevice ?: return
+        val connectedDevices = hid.getDevicesMatchingConnectionStates(intArrayOf(BluetoothProfile.STATE_CONNECTED))
+        Log.d(TAG, "checkExistingConnections: found ${connectedDevices.size} connected devices")
+        
+        if (connectedDevices.isNotEmpty()) {
+            hostDevice = connectedDevices[0]
+            Log.d(TAG, "Restoring connection to: ${hostDevice?.name}")
+            callback?.onConnectionStateChanged(hostDevice, BluetoothProfile.STATE_CONNECTED)
+            updateNotification()
+        } else {
+            // Try to proactively connect to bonded devices
+            bluetoothAdapter?.bondedDevices?.forEach { device ->
+                val state = hid.getConnectionState(device)
+                Log.d(TAG, "Bonded device: ${device.name}, HID State: $state")
+                if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.d(TAG, "Attempting to connect to ${device.name}...")
+                    try {
+                        // Attempt to initiate connection from our side
+                        hid.connect(device)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to call connect()", e)
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate")
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification("Initializing Bluetooth HID..."))
 
@@ -106,6 +142,7 @@ class JigglerService : Service() {
 
         bluetoothAdapter?.getProfileProxy(this, object : BluetoothProfile.ServiceListener {
             override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+                Log.d(TAG, "onServiceConnected: profile=$profile")
                 if (profile == BluetoothProfile.HID_DEVICE) {
                     hidDevice = proxy as BluetoothHidDevice
                     registerHidApp()
@@ -113,6 +150,7 @@ class JigglerService : Service() {
             }
 
             override fun onServiceDisconnected(profile: Int) {
+                Log.d(TAG, "onServiceDisconnected: profile=$profile")
                 if (profile == BluetoothProfile.HID_DEVICE) {
                     hidDevice = null
                 }
@@ -128,8 +166,16 @@ class JigglerService : Service() {
         return binder
     }
 
-    private fun updateBluetoothName() {
-        currentId = generateRandomId()
+    private fun updateBluetoothName(forceNew: Boolean = false) {
+        val prefs = getSharedPreferences("jiggler_prefs", Context.MODE_PRIVATE)
+        var id = prefs.getString("current_id", null)
+        
+        if (id == null || forceNew) {
+            id = generateRandomId()
+            prefs.edit().putString("current_id", id).apply()
+        }
+        
+        currentId = id
         try {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED ||
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
@@ -166,7 +212,7 @@ class JigglerService : Service() {
             }
         }
         // Generate a new ID to appear as a new device to the host
-        updateBluetoothName()
+        updateBluetoothName(true)
         // After unpairing, it's good to reset registration
         resetRegistration()
     }

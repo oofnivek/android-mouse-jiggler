@@ -6,6 +6,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.os.*
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,7 @@ import java.util.concurrent.Executors
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        private const val TAG = "MainActivity"
         private const val PERMISSION_REQUEST_CODE = 1
     }
 
@@ -29,6 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            Log.d(TAG, "onServiceConnected")
             val binder = service as JigglerService.LocalBinder
             jigglerService = binder.getService()
             isBound = true
@@ -37,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            Log.d(TAG, "onServiceDisconnected")
             jigglerService = null
             isBound = false
         }
@@ -44,10 +48,12 @@ class MainActivity : AppCompatActivity() {
 
     private val serviceCallback = object : JigglerService.ServiceCallback {
         override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
+            Log.d(TAG, "onConnectionStateChanged: device=${device?.name}, state=$state")
             runOnUiThread { updateUI() }
         }
 
         override fun onAppStatusChanged(registered: Boolean) {
+            Log.d(TAG, "onAppStatusChanged: registered=$registered")
             runOnUiThread {
                 if (registered) {
                     tvStatus.text = "Bluetooth HID Registered.\nPair your MacBook with this device."
@@ -58,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onJigglingStatusChanged(isJiggling: Boolean) {
+            Log.d(TAG, "onJigglingStatusChanged: $isJiggling")
             runOnUiThread { updateUI() }
         }
     }
