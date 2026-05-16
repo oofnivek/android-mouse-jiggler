@@ -1,0 +1,38 @@
+# Built objects
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+*/build/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+
+# Android Studio captures
+captures/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log files
+*.log
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
+
+# OS X files
+.DS_Store
+
+# Bundle/APK outputs
+*.apk
+*.aar
+*.bundle
