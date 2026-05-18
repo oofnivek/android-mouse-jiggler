@@ -179,7 +179,7 @@ class JigglerService : Service() {
         try {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED ||
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                bluetoothAdapter?.name = "Jiggler $currentId"
+                bluetoothAdapter?.name = "Mouse $currentId"
             }
         } catch (e: Exception) {
             // Fallback
