@@ -87,7 +87,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:text="Status: Acting as HID Mouse"
-        android:textColor="#33FFFFFF"
+        android:textColor="@color/on_surface_hint"
         android:textSize="12sp" />
 
 </RelativeLayout>
